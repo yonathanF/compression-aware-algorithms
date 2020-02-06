@@ -6,15 +6,18 @@ import random
 import string
 letters = string.ascii_lowercase
 
-def same_index_compression(num_tokens,index_num):
-	result = []
-	for i in range(num_tokens):
-		index_to_use = index_num
-		if(i < index_num):
-			index_to_use = i
-		result.append((index_to_use, letters[random.randrange(0,len(letters))]))
-	return result
 
+"""
+I am using this to measure the relationship between
+average index diff (meaning the number of tokens back a given token's index reaches)
+and compression ratio.
+
+You can also supply an amount to perturb the indices by so that you sample a larger range of strings.
+
+After making some plots, I will derive the inverse 
+of this relationship so that we have the mapping of
+compression ratio |----> average index diff to use
+"""
 def same_index_diff_compression(num_tokens,index_diff,index_randomness):
 	result = []
 	for i in range(num_tokens):
@@ -35,8 +38,8 @@ def compressionRatio(compression):
 	string = decompress(compression)
 	return len(string) / len(compression)
 
-num_tokens = 100
-index_randomness = 0
+num_tokens = 1000
+index_randomness = 1
 num_trials = 200
 for i in range(1,num_tokens):
 	avg_CR = 0
