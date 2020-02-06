@@ -54,12 +54,10 @@ def EditDistance(s1, s2):
 
     return matrix[len(s1)-1][len(s2)-1]
 
-
-
-
 def HammingDistance(s1, s2):
-    pass
-
+    if len(s1) != len(s2):
+        return -1
+    return sum(c1 != c2 for c1, c2 in zip(s1, s2))
 
 def SequenceAlignment(s1, s2):
     pass
