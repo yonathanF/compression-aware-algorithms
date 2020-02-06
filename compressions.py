@@ -1,7 +1,7 @@
 # compressions.py
 
 import LZ78
-import matplotlib.pyplot as plt
+# import matplotlib.pyplot as plt
 import random
 import string
 letters = string.ascii_lowercase
@@ -15,10 +15,10 @@ def same_index_compression(num_tokens,index_num):
 		result.append((index_to_use, letters[random.randrange(0,len(letters))]))
 	return result
 
-def same_index_diff_compression(num_tokens,index_diff):
+def same_index_diff_compression(num_tokens,index_diff,index_randomness):
 	result = []
 	for i in range(num_tokens):
-		index_to_use = max(0,i - index_diff)
+		index_to_use = max(0,i - index_diff+random.randrange(-index_randomness,index_randomness+1))
 		result.append((index_to_use, letters[random.randrange(0,len(letters))]))
 	return result
 
@@ -35,16 +35,16 @@ def compressionRatio(compression):
 	string = decompress(compression)
 	return len(string) / len(compression)
 
-fig = plt.figure()  # an empty figure with no axes
-fig.suptitle('No axes on this figure')  # Add a title so we know which it is
-fig, ax_lst = plt.subplots(2, 2)  # a figure with a 2x2 grid of Axes
-num_tokens = 1000
-num_trials = 1
+num_tokens = 100
+index_randomness = 0
+num_trials = 200
 for i in range(1,num_tokens):
+	avg_CR = 0
 	for j in range(num_trials):
-		comp = same_index_diff_compression(num_tokens,i)
-		CR = compressionRatio(comp)
+		comp = same_index_diff_compression(num_tokens,i,1)
+		avg_CR += compressionRatio(comp)
 		# print(comp)
 		# string = decompress(comp)
-		# print(string)
-		print("index diff:",i,"compression ratio:",CR)
+		# print(decompress(comp))
+	avg_CR /= num_trials
+	print("index diff:",i,"compression ratio:",round(avg_CR,2))
