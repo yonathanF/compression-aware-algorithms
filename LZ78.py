@@ -23,7 +23,6 @@ def encode(string):
 
 def decode(pairs):
     result = ''
-    partial_results = []
     d = {0:''}
     i = 1
     for pair in pairs:
@@ -32,15 +31,12 @@ def decode(pairs):
         if(num == 0):
             d[i] = char
             result += char
-            partial_results.append(result)
         else:
             string = d[num] + char
             d[i] = string
             result += string
-            partial_results.append(result)
         i += 1
-    partial_results.append(result)
-    return result, partial_results
+    return result
 
 def decode_pair(dict,pair):
     return dict[pair[0]] + pair[1]
