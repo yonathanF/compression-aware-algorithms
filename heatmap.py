@@ -2,6 +2,8 @@
 
 import metrics
 import compressions
+import matplotlib.pyplot as plt
+
 
 
 def test(CR1,CR2):
@@ -14,7 +16,7 @@ def test(CR1,CR2):
 	#store average result in heatmap
 
 
-def makeHeatmap():
+def makeHeatmap(min,max):
 	for i in range(min,max):
 		for j in range(i,max):
 			test(i,j)
