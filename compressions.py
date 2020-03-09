@@ -4,9 +4,10 @@ import LZ78
 decompress = LZ78.decode
 recompress = LZ78.encode
 
-# import matplotlib.pyplot as plt
+import matplotlib.pyplot as plt
 import random
 import math
+# from piecewise.regressor import piecewise
 
 import string
 letters = string.ascii_letters
@@ -52,24 +53,26 @@ def compressionRatio(compression):
 # 	for j in range(100):
 # 		print(decompress(same_index_diff_compression(30,5,i)))
 
-# num_tokens = 500
-# index_randomness = 1
-# num_trials = 10
-# diffs = []
-# CRs = []
-# for i in range(1,num_tokens):
-# 	avg_CR = 0
-# 	for j in range(num_trials):
-# 		comp = same_index_diff_compression(num_tokens,i,index_randomness)
-# 		avg_CR += compressionRatio(comp)
-# 		# print(compressionRatio(comp))
-# 		# string = decompress(comp)
-# 		# print(decompress(comp))
-# 	avg_CR /= num_trials
-# 	diffs.append(i)
-# 	CRs.append(math.log(avg_CR))
-# 	print("index diff:",i,"         compression ratio:",round(math.log(avg_CR),2))
-# plt.scatter(diffs,CRs)
-# plt.ylabel('Average Compression Ratio')
-# plt.xlabel('Index Diff')
-# plt.show()
+num_tokens = 500
+index_randomness = 3
+num_trials = 10
+diffs = []
+CRs = []
+for i in range(1,num_tokens):
+	avg_CR = 0
+	for j in range(num_trials):
+		comp = same_index_diff_compression(num_tokens,i,index_randomness)
+		avg_CR += compressionRatio(comp)
+		# print(compressionRatio(comp))
+		# string = decompress(comp)
+		# print(decompress(comp))
+	avg_CR /= num_trials
+	diffs.append(i)
+	pt = math.pow(avg_CR,-2)
+	CRs.append(pt)
+	print("index diff:",i,"         compression ratio:",round(pt,2))
+plt.scatter(diffs,CRs)
+# model = piecewise(diffs,CRs)
+plt.ylabel('Average Compression Ratio')
+plt.xlabel('Index Diff')
+plt.show()
