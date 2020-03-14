@@ -15,29 +15,14 @@ letters = string.ascii_letters
 #cmd line args
 import sys
 
-# 2-part linear piecewise from here:
-# https://stackoverflow.com/questions/46218934/piecewise-linear-fit-with-n-breakpoints
-from scipy import optimize
 import numpy as np
-def linear(k,x0,y0):
-    return lambda x:k*x + y0-k*x0
-def piecewise_linear(x, x0, y0, k1, k2):
-    return np.piecewise(x, [x < x0, x >= x0], [linear(k1,x0,y0), linear(k2,x0,y0)])
-def piecewise_linear_three(x, x0, y0, x1, y1, k1, k2, k3):
-    return np.piecewise(x, [x < x0, np.logical_and(x >= x0, x < x1), x >= x1], [linear(k1,x0,y0), linear(k2,x0,y0), linear(k3,x1,y1)])
-#example use
-# x = np.array([1, 2, 3, 4, 5, 6, 7, 8, 9, 10 ,11, 12, 13, 14, 15], dtype=float)
-# y = np.array([5, 7, 9, 11, 13, 15, 28.92, 42.81, 56.7, 70.59, 84.47, 98.36, 112.25, 126.14, 140.03])
-# p , e = optimize.curve_fit(piecewise_linear, x, y)
-# xd = np.linspace(0, 15, 100)
-# plt.plot(x, y, "o")
-# plt.plot(xd, piecewise_linear(xd, *p))
-# plt.show()
-
 # a more obscure piecewise linear fit library
 # https://github.com/cjekel/piecewise_linear_fit_py
-import pwlf
-
+try:
+    import pwlf
+except ImportError:
+    print("pip install pwlf")
+    exit()
 
 
 
@@ -77,53 +62,44 @@ def compressionRatio(compression):
     newcomp = recompress(string)
     return len(string) / len(newcomp)
 
-def findFit(num_tokens=500, index_randomness=1, num_trials=10):
-    #something horrible I'm doing to tell findFit to keep trying new data until fitting succeeds
-    import warnings
-    warnings.filterwarnings("error")
+def generateData(num_tokens=500,index_randomness=1, num_trials=10):
+    diffs = []
+    CRs = []
+    for i in range(1,num_tokens):
+      avg_CR = 0
+      for j in range(num_trials):
+          comp = same_index_diff_compression(num_tokens,i,index_randomness)
+          avg_CR += compressionRatio(comp)
+      avg_CR /= num_trials
+      diffs.append(i/num_tokens)
+      CRs.append(avg_CR)
+    return (np.array(diffs), np.array(CRs))
 
-    foundFit = False
-    params = None
-    roundNum = 0
-    while not foundFit:
-        print("round",roundNum)
-        roundNum += 1
-        diffs = []
-        CRs = []
-        for i in range(1,num_tokens):
-          avg_CR = 0
-          for j in range(num_trials):
-              comp = same_index_diff_compression(num_tokens,i,index_randomness)
-              avg_CR += compressionRatio(comp)
-          avg_CR /= num_trials
-          diffs.append(i/num_tokens)
-          pt = math.pow(avg_CR,-2)
-          # pt = avg_CR
-          CRs.append(pt)
-          # print("index diff:",i,"         compression ratio:",round(pt,2))
-        diffs = np.array(diffs)
-        CRs = np.array(CRs)
-        piecewiseFit = pwlf.PiecewiseLinFit(diffs, CRs)
-        res1 = piecewiseFit.fit(3, disp=True)
-        # try:
-            # params , err = optimize.curve_fit(piecewise_linear, diffs, CRs)
-        # except optimize.OptimizeWarning:
-            # continue
-        foundFit = True
-        plt.plot(diffs,CRs,'o')
-        plt.ylabel('Average Compression Ratio')
-        plt.xlabel('Index Diff / Num Tokens')
-        xd = np.linspace(0, 1, num_tokens*2)
-        yd = piecewiseFit.predict(xd)
-        plt.plot(xd,yd)
-        plt.show()
-    return params
+def findFit(data):
+    x = data[0]
+    y = data[1]
+    y = np.reciprocal(y*y)
+    piecewiseFit = pwlf.PiecewiseLinFit(x,y)
+    res1 = piecewiseFit.fit(3)
+    return piecewiseFit
 
 num_tokens = 500
 if(len(sys.argv) > 1):
     num_tokens = int(sys.argv[1])
-p = findFit(num_tokens)
-print("params: ",p)
+print("generating data")
+data = generateData(num_tokens)
+print("finished generating data")
+x = data[0]
+y = data[1]
+y = np.reciprocal(y*y)
+plt.plot(x,y,'o')
+plt.ylabel('Average Compression Ratio')
+plt.xlabel('Index Diff / Num Tokens')
+print("fitting data")
+piecewiseFit = findFit(data)
+print("finished fitting data")
 xd = np.linspace(0, 1, num_tokens*2)
-plt.plot(xd, piecewise_linear(xd, *p))
+yd = piecewiseFit.predict(xd)
+plt.plot(xd,yd)
+print("showing plot")
 plt.show()
