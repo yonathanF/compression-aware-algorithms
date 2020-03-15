@@ -4,17 +4,12 @@ import LZ78
 decompress = LZ78.decode
 recompress = LZ78.encode
 
-import matplotlib.pyplot as plt
-import random
-import math
-
 #what characters do we choose from when adding a token to a random compression? 
 import string
 letters = string.ascii_letters
 
-#cmd line args
-import sys
-
+import random
+import math
 import numpy as np
 # a more obscure piecewise linear fit library
 # https://github.com/cjekel/piecewise_linear_fit_py
@@ -25,7 +20,7 @@ except ImportError:
     exit()
 
 
-def same_index_diff_compression(num_tokens,index_diff,index_randomness):
+def same_index_diff_compression(num_tokens,index_diff,index_randomness=1):
     result = []
     for i in range(num_tokens):
         index_to_use = i - index_diff+random.randrange(-index_randomness,index_randomness+1)
@@ -34,7 +29,9 @@ def same_index_diff_compression(num_tokens,index_diff,index_randomness):
     return result
 
 def random_compression(compression_ratio,num_tokens):
-    pass
+    CRToDiff = deriveCRToDiff(num_tokens)
+    index_diff = CRToDiff(compression_ratio)
+    return same_index_diff_compression(num_tokens,index_diff)
 
 def random_compression_2(compression_ratio,string_size):
     num_tokens = int(round(string_size / compression_ratio))
@@ -67,10 +64,11 @@ def findPiecewiseFit(data):
     res1 = piecewiseFit.fit(4) #this gets very slow at about 6 line segments
     return piecewiseFit
 
+#TODO: fix this for boundary cases
 def piecewiseEvaluate(x,breakpoints,breakpointYs,slopes):
     for i in range(len(breakpoints)):
         if(x < breakpoints[i]):
-            return (x-breakpoints[i])*slopes[i] + breakpointY[i]
+            return (x-breakpoints[i-1])*slopes[i-1] + breakpointYs[i-1]
 
 def piecewiseInverse(fit):
     for slope in fit.slopes:
@@ -84,31 +82,19 @@ def piecewiseInverse(fit):
         return piecewiseEvaluate(x,newBreakpoints,newBreakpointYs,newSlopes)
     return invertedFit
 
-# remember to plug 1/(compressionRatio*compressionRatio) instead of compressionRatio
-
-
-num_tokens = 500
-if(len(sys.argv) > 1):
-    num_tokens = int(sys.argv[1])
-print("deriving model")
-print("    generating data")
-data = generateData(num_tokens)
-print("    generated data")
-x = data[0]
-y = data[1]
-plt.plot(x,y,'o')
-plt.ylabel('Average Compression Ratio')
-plt.xlabel('Index Diff / Num Tokens')
-print("    fitting data")
-piecewiseFit = findPiecewiseFit(data)
-print("    fitted data")
-print(piecewiseFit.fit_breaks)
-print(piecewiseFit.predict(piecewiseFit.fit_breaks))
-print(piecewiseFit.slopes)
-print(piecewiseFit.beta)
-xd = np.linspace(0, 1, num_tokens*2)
-yd = piecewiseFit.predict(xd)
-yd = np.reciprocal(np.sqrt(yd))
-plt.plot(xd,yd)
-print("showing plot")
-plt.show()
+prevModels = {}
+def deriveCRToDiff(num_tokens):
+    if(num_tokens in prevModels):
+        return prevModels[num_tokens]
+    print("deriving model for",num_tokens)
+    print("    generating data")
+    data = generateData(num_tokens)
+    print("    generated data")
+    print("    fitting data")
+    piecewiseFit = findPiecewiseFit(data)
+    print("    fitted data")
+    invertedFit = piecewiseInverse(piecewiseFit)
+    def result(compression_ratio):
+        return invertedFit(1/(compression_ratio*compression_ratio))
+    prevModels[num_tokens] = result
+    return result
