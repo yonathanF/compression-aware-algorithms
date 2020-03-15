@@ -65,14 +65,15 @@ def compressionRatio(compression):
 def generateData(num_tokens=500,index_randomness=1, num_trials=10):
     diffs = []
     CRs = []
+    #TODO this outer loop is slow but can be done in parallel or using map syntax
     for i in range(1,num_tokens):
-      avg_CR = 0
-      for j in range(num_trials):
-          comp = same_index_diff_compression(num_tokens,i,index_randomness)
-          avg_CR += compressionRatio(comp)
-      avg_CR /= num_trials
-      diffs.append(i/num_tokens)
-      CRs.append(avg_CR)
+        avg_CR = 0
+        for j in range(num_trials):
+            comp = same_index_diff_compression(num_tokens,i,index_randomness)
+            avg_CR += compressionRatio(comp)
+        avg_CR /= num_trials
+        diffs.append(i/num_tokens)
+        CRs.append(avg_CR)
     return (np.array(diffs), np.array(CRs))
 
 def findFit(data):
@@ -80,26 +81,40 @@ def findFit(data):
     y = data[1]
     y = np.reciprocal(y*y)
     piecewiseFit = pwlf.PiecewiseLinFit(x,y)
-    res1 = piecewiseFit.fit(3)
+    res1 = piecewiseFit.fit(4) #this gets very slow at about 6 line segments
     return piecewiseFit
+
+def inverse(fit):
+    breakpoints = fit.fit_breaks
+    slopes = fit.slopes
+    for slope in slopes:
+        if(slope <= 0):
+            print("fit is not strictly increasing, so I can't invert it")
+            return
+    def indexDiff(compressionRatio):
+        return 1
+    return indexDiff
+
+
 
 num_tokens = 500
 if(len(sys.argv) > 1):
     num_tokens = int(sys.argv[1])
 print("generating data")
 data = generateData(num_tokens)
-print("finished generating data")
+print("generated data")
 x = data[0]
 y = data[1]
-y = np.reciprocal(y*y)
+# y = np.reciprocal(y*y)
 plt.plot(x,y,'o')
 plt.ylabel('Average Compression Ratio')
 plt.xlabel('Index Diff / Num Tokens')
 print("fitting data")
 piecewiseFit = findFit(data)
-print("finished fitting data")
+print("fitted data")
 xd = np.linspace(0, 1, num_tokens*2)
 yd = piecewiseFit.predict(xd)
+yd = np.reciprocal(np.sqrt(yd))
 plt.plot(xd,yd)
 print("showing plot")
 plt.show()
