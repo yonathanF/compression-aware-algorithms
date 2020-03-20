@@ -28,7 +28,7 @@ def random_string(num_chars):
         result += letters[random.randrange(0,len(letters))]
     return result
 
-def random_compression(compression_ratio,num_tokens=500, tolerance = 0.05):
+def random_compression(compression_ratio,num_tokens=500, tolerance = 0.05, reject = False):
     CRToDiff = deriveCRToDiff(num_tokens)
     avgIndexDiff = CRToDiff(compression_ratio)
     chanceToLower = avgIndexDiff % 1
@@ -36,14 +36,15 @@ def random_compression(compression_ratio,num_tokens=500, tolerance = 0.05):
     if(random.random() > chanceToLower):
         index_diff += 1
     comp = same_index_diff_compression(num_tokens,index_diff)
-    while not withinTolerance(compressionRatio(comp), compression_ratio, tolerance):
-        comp = same_index_diff_compression(num_tokens,index_diff)
+    if(reject):
+        while not withinTolerance(compressionRatio(comp), compression_ratio, tolerance):
+            comp = same_index_diff_compression(num_tokens,index_diff)
     return comp
 
 
-def random_compression_2(compression_ratio,string_size=2500):
+def random_compression_2(compression_ratio,string_size=2500, tolerance = 0.05, reject = True):
     num_tokens = int(round(string_size / compression_ratio))
-    return random_compression(compression_ratio,num_tokens)
+    return random_compression(compression_ratio,num_tokens, tolerance, reject)
 
 def same_index_diff_compression(num_tokens,index_diff,index_randomness=1):
     result = []
@@ -119,23 +120,23 @@ def deriveCRToDiff(num_tokens):
     prevModels[num_tokens] = result
     return result
 
-import sys
+# import sys
 
-#helper for testing
-def frange(start, stop, step):
-    i = start
-    while i < stop:
-        yield i
-        i += step
+# #helper for testing
+# def frange(start, stop, step):
+#     i = start
+#     while i < stop:
+#         yield i
+#         i += step
 
-toks = 500
-num_trials = 1
-if(len(sys.argv)>1):
-    toks = int(sys.argv[1])
-for CR in frange(1.2,15,0.1):
-    avg_CR = 0
-    for trial in range(num_trials):
-        comp = random_compression(CR,toks)
-        avg_CR += compressionRatio(comp)
-    avg_CR /= num_trials
-    print("target:",round(CR,2),"\tactual:",round(avg_CR,2))
+# toks = 500
+# num_trials = 10
+# if(len(sys.argv)>1):
+#     toks = int(sys.argv[1])
+# for CR in frange(5,30,0.5):
+#     avg_CR = 0
+#     for trial in range(num_trials):
+#         comp = random_compression(CR,toks,reject=True)
+#         avg_CR += compressionRatio(comp)
+#     avg_CR /= num_trials
+#     print("target:",round(CR,2),"\tactual:",round(avg_CR,2))
