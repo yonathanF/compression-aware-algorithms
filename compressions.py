@@ -29,11 +29,6 @@ def random_string(num_chars):
     return result
 
 def random_compression(compression_ratio,num_tokens=500, tolerance = 0.05):
-    if(compression_ratio < 1.4): #these are hard to generate it turns out
-        comp = compress(random_string(int(num_tokens*compression_ratio)))
-        while not withinTolerance(compressionRatio(comp), compression_ratio, tolerance):
-            comp = compress(random_string(int(num_tokens*compression_ratio)))
-        return comp
     CRToDiff = deriveCRToDiff(num_tokens)
     avgIndexDiff = CRToDiff(compression_ratio)
     chanceToLower = avgIndexDiff % 1
@@ -124,7 +119,6 @@ def deriveCRToDiff(num_tokens):
     prevModels[num_tokens] = result
     return result
 
-
 import sys
 
 #helper for testing
@@ -135,10 +129,10 @@ def frange(start, stop, step):
         i += step
 
 toks = 500
-num_trials = 5
+num_trials = 1
 if(len(sys.argv)>1):
     toks = int(sys.argv[1])
-for CR in frange(3,15,0.1):
+for CR in frange(1.2,15,0.1):
     avg_CR = 0
     for trial in range(num_trials):
         comp = random_compression(CR,toks)
