@@ -3,7 +3,7 @@
 import sys
 sys.setrecursionlimit(10**6)
 
-LCS_results = {}
+LCS_results = {} #please copy this line with the function
 def LCS(s1, s2):
     if(s1 == "" or s2 == ""):
         return ""

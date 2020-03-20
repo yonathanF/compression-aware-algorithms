@@ -2,7 +2,7 @@
 
 import LZ78
 decompress = LZ78.decode
-recompress = LZ78.encode
+compress = LZ78.encode
 
 #what characters do we choose from when adding a token to a random compression? 
 import string
@@ -19,16 +19,21 @@ except ImportError:
     print("pip install pwlf")
     exit()
 
-def frange(start, stop, step):
-    i = start
-    while i < stop:
-        yield i
-        i += step
-
 def withinTolerance(x,y,tolerance):
     return abs((x/y) - 1) < tolerance
 
+def random_string(num_chars):
+    result = ''
+    for i in range(num_chars):
+        result += letters[random.randrange(0,len(letters))]
+    return result
+
 def random_compression(compression_ratio,num_tokens=500, tolerance = 0.05):
+    if(compression_ratio < 1.4): #these are hard to generate it turns out
+        comp = compress(random_string(int(num_tokens*compression_ratio)))
+        while not withinTolerance(compressionRatio(comp), compression_ratio, tolerance):
+            comp = compress(random_string(int(num_tokens*compression_ratio)))
+        return comp
     CRToDiff = deriveCRToDiff(num_tokens)
     avgIndexDiff = CRToDiff(compression_ratio)
     chanceToLower = avgIndexDiff % 1
@@ -55,7 +60,7 @@ def same_index_diff_compression(num_tokens,index_diff,index_randomness=1):
 
 def compressionRatio(compression):
     string = decompress(compression)
-    newcomp = recompress(string)
+    newcomp = compress(string)
     return len(string) / len(newcomp)
 
 def generateData(num_tokens=500,index_randomness=1, num_trials=10):
@@ -80,9 +85,12 @@ def findPiecewiseFit(data):
     res1 = piecewiseFit.fit(3) #this gets very slow at about 6 line segments
     return piecewiseFit
 
-#TODO: fix this for boundary cases
 def piecewiseEvaluate(x,breakpoints,breakpointYs,slopes):
-    for i in range(len(breakpoints)):
+    if(x < breakpoints[0]):
+        return (x-breakpoints[0])*slopes[0] + breakpointYs[0]
+    if(x >= breakpoints[-1]):
+        return (x-breakpoints[-1])*slopes[-1] + breakpointYs[-1]
+    for i in range(1,len(breakpoints)):
         if(x < breakpoints[i]):
             return (x-breakpoints[i-1])*slopes[i-1] + breakpointYs[i-1]
 
@@ -98,7 +106,8 @@ def piecewiseInverse(fit):
         return piecewiseEvaluate(x,newBreakpoints,newBreakpointYs,newSlopes)
     return invertedFit
 
-prevModels = {}
+#TODO: memoize to a file so that models are preserved between runs
+prevModels = {} #please copy this line with the function
 def deriveCRToDiff(num_tokens):
     if(num_tokens in prevModels):
         return prevModels[num_tokens]
@@ -115,12 +124,21 @@ def deriveCRToDiff(num_tokens):
     prevModels[num_tokens] = result
     return result
 
+
 import sys
+
+#helper for testing
+def frange(start, stop, step):
+    i = start
+    while i < stop:
+        yield i
+        i += step
+
 toks = 500
 num_trials = 5
 if(len(sys.argv)>1):
     toks = int(sys.argv[1])
-for CR in frange(5,35,0.1):
+for CR in frange(3,15,0.1):
     avg_CR = 0
     for trial in range(num_trials):
         comp = random_compression(CR,toks)
