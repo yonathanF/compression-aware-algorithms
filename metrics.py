@@ -3,7 +3,9 @@
 import sys
 sys.setrecursionlimit(10**6)
 
-LCS_results = {} #please copy this line with the function
+LCS_results = {}  # please copy this line with the function
+
+
 def LCS(s1, s2):
     if(s1 == "" or s2 == ""):
         return ""
@@ -48,21 +50,32 @@ def EditDistance(s1, s2):
             else:
                 sub_cost = 1
 
-            matrix[i][j] = min(matrix[i-1][j] + 1,
-                               matrix[i][j-1]+1,
-                               matrix[i-1][j-1]+sub_cost)
+            matrix[i][j] = min(matrix[i - 1][j] + 1,
+                               matrix[i][j - 1] + 1,
+                               matrix[i - 1][j - 1] + sub_cost)
 
-    return matrix[len(s1)-1][len(s2)-1]
+    return matrix[len(s1) - 1][len(s2) - 1]
+
 
 def HammingDistance(s1, s2):
     if len(s1) != len(s2):
         return -1
     return sum(c1 != c2 for c1, c2 in zip(s1, s2))
 
-#the Needleman-Wunsch algorithm for Sequence Alignment
+# the Needleman-Wunsch algorithm for Sequence Alignment
+
+
 def SequenceAlignment(s1, s2):
     pass
 
 
 def StringReconstruction(s1, s2):
     pass
+
+metrics = {
+    "HammingDistance": HammingDistance,
+    "StringReconstruction": StringReconstruction,
+    "SequenceAlignment": SequenceAlignment,
+    "EditDistance": EditDistance,
+    "LCS": LCS,
+}

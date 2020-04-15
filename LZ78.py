@@ -1,5 +1,6 @@
 # LZ78.py
 
+
 def encode(string):
     # print("encoding for",string)
     result = []
@@ -13,17 +14,18 @@ def encode(string):
             # print(i,":",token)
             d[token] = i
             i += 1
-            result.append((last_token_index,c))
+            result.append((last_token_index, c))
             token = ''
             last_token_index = 0
         else:
             last_token_index = d[token]
-    result.append((last_token_index,''))
+    result.append((last_token_index, ''))
     return result
+
 
 def decode(pairs):
     result = ''
-    d = {0:''}
+    d = {0: ''}
     i = 1
     for pair in pairs:
         num = pair[0]
