@@ -7,7 +7,8 @@ import matplotlib.pyplot as plt
 import numpy as np
 
 def test(CR1, CR2):
-    iters = 10
+    print("\tComparing {} and {}".format(CR1, CR2))
+    iters = 1
     results = np.zeros((len(metrics), iters))
     for i in range(iters):
         decompressed = tuple(map(decode, map(random_compression, (CR1, CR2))))
@@ -16,10 +17,16 @@ def test(CR1, CR2):
     results = np.mean(results, axis=1)
     return {a:b for a,b in zip(metrics,results)}
 
+def frange(start, stop, step=0.1):
+    i = start
+    while i < stop:
+        yield i
+        i += step
+
 def makeHeatmap(min_limit, max_limit):
-    for i in range(min_limit, max_limit):
-        for j in range(i, max_limit):
-            print("Running {} and {}".format(i, j))
+    print("Making heatmap with Min {} and Max {}".format(min_limit, max_limit))
+    for i in frange(min_limit, max_limit):
+        for j in frange(i, max_limit):
             print(test(i, j))
 
-makeHeatmap(1, 10)
+makeHeatmap(0.1, 2)
