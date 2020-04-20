@@ -27,6 +27,8 @@ def LCS(s1, s2):
     # print("LCS(",s1,",",s2,") :",result)
     return result
 
+def LCS_heatmap(s1, s2):
+    return len(LCS(s1,s2))
 
 def matrix_pretty_print(matrix):
     """Prints the matrix more nicely """
@@ -74,8 +76,8 @@ def StringReconstruction(s1, s2):
 
 metrics = {
     "HammingDistance": HammingDistance,
-    "StringReconstruction": StringReconstruction,
-    "SequenceAlignment": SequenceAlignment,
+    #"StringReconstruction": StringReconstruction,
+    #"SequenceAlignment": SequenceAlignment,
     "EditDistance": EditDistance,
-    "LCS": LCS,
+    "LCSHeatmap": LCS_heatmap,
 }
