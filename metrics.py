@@ -1,34 +1,28 @@
 # metrics.py
 
-import sys
-sys.setrecursionlimit(10**6)
-
-LCS_results = {}  # please copy this line with the function
-
-
-def LCS(s1, s2):
-    if(s1 == "" or s2 == ""):
-        return ""
-    if(s1 in LCS_results and s2 in LCS_results[s1]):
-        return LCS_results[s1][s2]
-    result = ""
-    if(s1[-1] == s2[-1]):
-        result = LCS(s1[:-1], s2[:-1]) + s1[-1]
-    else:
-        reduce_s1_result = LCS(s1[:-1], s2)
-        reduce_s2_result = LCS(s1, s2[:-1])
-        if(len(reduce_s1_result) > len(reduce_s2_result)):
-            result = reduce_s1_result
-        else:
-            result = reduce_s2_result
-    if s1 not in LCS_results:
-        LCS_results[s1] = {}
-    LCS_results[s1][s2] = result
-    # print("LCS(",s1,",",s2,") :",result)
-    return result
-
-def LCS_heatmap(s1, s2):
-    return len(LCS(s1,s2))
+# https://www.geeksforgeeks.org/longest-common-subsequence-dp-4/
+def LCS(X , Y): 
+    # find the length of the strings 
+    m = len(X) 
+    n = len(Y) 
+  
+    # declaring the array for storing the dp values 
+    L = [[None]*(n+1) for i in range(m+1)] 
+  
+    """Following steps build L[m+1][n+1] in bottom up fashion 
+    Note: L[i][j] contains length of LCS of X[0..i-1] 
+    and Y[0..j-1]"""
+    for i in range(m+1): 
+        for j in range(n+1): 
+            if i == 0 or j == 0 : 
+                L[i][j] = 0
+            elif X[i-1] == Y[j-1]: 
+                L[i][j] = L[i-1][j-1]+1
+            else: 
+                L[i][j] = max(L[i-1][j] , L[i][j-1]) 
+  
+    # L[m][n] contains the length of LCS of X[0..n-1] & Y[0..m-1] 
+    return L[m][n] 
 
 def matrix_pretty_print(matrix):
     """Prints the matrix more nicely """
@@ -65,8 +59,6 @@ def HammingDistance(s1, s2):
     return sum(c1 != c2 for c1, c2 in zip(s1, s2))
 
 # the Needleman-Wunsch algorithm for Sequence Alignment
-
-
 def SequenceAlignment(s1, s2):
     pass
 
@@ -75,9 +67,9 @@ def StringReconstruction(s1, s2):
     pass
 
 metrics = {
-    "HammingDistance": HammingDistance,
+    "Hamming Distance": HammingDistance,
     #"StringReconstruction": StringReconstruction,
     #"SequenceAlignment": SequenceAlignment,
-    "EditDistance": EditDistance,
-    "LCSHeatmap": LCS_heatmap,
+    "Edit Distance": EditDistance,
+    "LCS Length": LCS,
 }
