@@ -1,5 +1,4 @@
 # compressions.py
-
 import LZ78
 decompress = LZ78.decode
 compress = LZ78.encode
@@ -118,8 +117,6 @@ def piecewiseInverse(fit):
 
 # TODO: memoize to a file so that models are preserved between runs
 prevModels = {}  # please copy this line with the function
-
-
 def deriveCRToDiff(num_tokens):
     if(num_tokens in prevModels):
         return prevModels[num_tokens]
@@ -140,8 +137,6 @@ def deriveCRToDiff(num_tokens):
 # import sys
 
 # # helper for testing
-
-
 # def frange(start, stop, step):
 #     i = start
 #     while i < stop:
