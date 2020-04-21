@@ -1,32 +1,42 @@
 # heatmap.py
-
+import itertools
 from metrics import metrics
 from compressions import random_compression
-from LZ78 import decode
+from LZ78 import (decode, encode)
 import matplotlib.pyplot as plt
 import numpy as np
 
-def test(CR1, CR2):
-    print("\tComparing {} and {}".format(CR1, CR2))
+
+def compression_ratio(decompressed):
+    return len(encode(decompressed))/len(decompressed)
+
+
+def test(CRs):
+    CR1, CR2 = CRs
     iters = 1
-    results = np.zeros((len(metrics), iters))
+    results = np.zeros((iters, len(metrics)))
+    compression_ratios = np.zeros((iters, 2))
     for i in range(iters):
         decompressed = tuple(map(decode, map(random_compression, (CR1, CR2))))
+        compression_ratios[i][0], compression_ratios[i][1] = tuple(
+            map(compression_ratio, decompressed))
         for index, metric in enumerate(metrics):
-            results[index][i] = metrics[metric](decompressed[0],decompressed[1])
-    results = np.mean(results, axis=1)
-    return {a:b for a,b in zip(metrics,results)}
+            results[i][index] = metrics[metric](
+                decompressed[0], decompressed[1])
 
-def frange(start, stop, step=0.1):
-    i = start
-    while i < stop:
-        yield i
-        i += step
+    results = np.var(results, axis=0)
+    compression_ratios = np.mean(compression_ratios, axis=0)
+    return np.concatenate((compression_ratios, results))
+
 
 def makeHeatmap(min_limit, max_limit):
     print("Making heatmap with Min {} and Max {}".format(min_limit, max_limit))
-    for i in frange(min_limit, max_limit):
-        for j in frange(i, max_limit):
-            print(test(i, j))
+    size = ((max_limit-min_limit)//0.5)+1
+    steps = 0.5
+    cr_x = np.arange(min_limit, max_limit, steps)
+    cr_y = np.arange(min_limit, max_limit, steps)
+    result = map(test, itertools.product(cr_x, cr_y))
+    print(np.array(list(result)))
+
 
 makeHeatmap(0.1, 2)
