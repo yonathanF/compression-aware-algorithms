@@ -64,11 +64,9 @@ def random_compression(compression_ratio, string_size=2500, tolerance=0.05, reje
 def same_index_diff_compression(num_tokens, index_diff, index_randomness=1):
     result = []
     for i in range(num_tokens):
-        index_to_use = i - index_diff + \
-            random.randrange(-index_randomness, index_randomness + 1)
+        index_to_use = i - index_diff + random.randrange(-index_randomness, index_randomness + 1)
         index_to_use = max(0, min(i, index_to_use))
-        result.append(
-            (index_to_use, letters[random.randrange(0, len(letters))]))
+        result.append((index_to_use, letters[random.randrange(0, len(letters))]))
     return result
 
 

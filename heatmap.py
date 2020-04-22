@@ -8,8 +8,6 @@ from mpl_toolkits import mplot3d
 import numpy as np
 from multiprocessing import Pool
 
-from sys import stdout
-
 # metrics
 # this can't be a separate file because python doesn't know how 
 # to import a dynamically linked library like this
@@ -18,8 +16,11 @@ from os import getcwd
 so_file = getcwd() + "/metrics.so"
 cmetrics = CDLL(so_file)
 
+def char_p(s):
+    return c_char_p(s.encode())
+
 def LCS(s1,s2):
-    return cmetrics.lcs(s1,s2,len(s1),len(s2))
+    return cmetrics.lcs(char_p(s1),char_p(s2),c_int(len(s1)),c_int(len(s2)))
 
 def matrix_pretty_print(matrix):
     """Prints the matrix more nicely """
@@ -27,7 +28,7 @@ def matrix_pretty_print(matrix):
         print(row)
 
 def EditDistance(s1, s2):
-    return cmetrics.edit_distance(s1,s2,len(s1),len(s2))
+    return cmetrics.edit_distance(char_p(s1),char_p(s2),c_int(len(s1)),c_int(len(s2)))
 
 
 def HammingDistance(s1, s2):
@@ -72,6 +73,10 @@ def test(CRs):
                 decompressed[0], decompressed[1])
             print("        ({:.3f}, {:.3f}) {}: {}".format(cr_actual[0],cr_actual[1],metric,metric_score))
             results[i][index] = metric_score
+        # for index, metric in enumerate(metrics):
+        #     metric_score = cmetrics.take_str(decompressed[0])
+        #     print("        ({:.3f}, {:.3f})".format(cr_actual[0],cr_actual[1]))
+        #     results[i][index] = metric_score
 
     results = np.var(results, axis=0)
     compression_ratios = np.mean(compression_ratios, axis=0)
