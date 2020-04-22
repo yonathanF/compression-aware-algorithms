@@ -59,7 +59,7 @@ def compression_ratio(decompressed):
 
 def test(CRs):
     CR1, CR2 = CRs
-    print("    test({:.3f}, {:.3f})".format(CR1,CR2))
+    print("----------test({:.3f}, {:.3f})-----------".format(CR1,CR2))
     iters = 10
     results = np.zeros((iters, len(metrics)))
     compression_ratios = np.zeros((iters, 2))
@@ -71,25 +71,18 @@ def test(CRs):
         for index, metric in enumerate(metrics):
             metric_score = metrics[metric](
                 decompressed[0], decompressed[1])
-            print("        ({:.3f}, {:.3f}) {}: {}".format(cr_actual[0],cr_actual[1],metric,metric_score))
+            print("({:.3f}, {:.3f}) {}: {}".format(cr_actual[0],cr_actual[1],metric,metric_score))
             results[i][index] = metric_score
-        # for index, metric in enumerate(metrics):
-        #     metric_score = cmetrics.take_str(decompressed[0])
-        #     print("        ({:.3f}, {:.3f})".format(cr_actual[0],cr_actual[1]))
-        #     results[i][index] = metric_score
 
     results = np.var(results, axis=0)
     compression_ratios = np.mean(compression_ratios, axis=0)
     return np.concatenate((compression_ratios, results))
 
 
-def renew(min_limit, max_limit):
+def renew(min_limit, max_limit, steps=1.0):
     print("Making heatmap with Min {:.3f} and Max {:.3f}".format(min_limit, max_limit))
-    steps = 0.1
     cr_x = np.arange(min_limit, max_limit, steps)
     cr_y = np.arange(min_limit, max_limit, steps)
-    # result = np.array(list(map(test, itertools.product(cr_x, cr_y))))
-    # result.tofile('memo.dat')
     with Pool(5) as p:
         result = np.array(list(p.map(test, itertools.product(cr_x, cr_y))))
         result.tofile('memo.dat')
@@ -105,5 +98,5 @@ def makeHeatmap():
     plt.show()
 
 
-renew(2,20)
-# makeHeatmap()
+renew(2,20,1)
+makeHeatmap()

@@ -52,7 +52,7 @@ def truncated_compression(compression_ratio, num_tokens, string_size):
 
 #gives a compression which decompresses to a specified string size
 #with approximately a target compression ratio
-def random_compression(compression_ratio, string_size=2500, tolerance=0.05, reject=False):
+def random_compression(compression_ratio, string_size=2000, tolerance=0.05, reject=False):
     num_tokens = nearest_multiple_above(int(round(string_size / compression_ratio)),100)
     comp = truncated_compression(compression_ratio, num_tokens, string_size)
     if(reject):
@@ -129,12 +129,8 @@ def deriveCRToDiff(num_tokens):
     if(num_tokens in prevModels):
         return prevModels[num_tokens]
     print("deriving model for", num_tokens, "tokens")
-    print("    generating data")
     data = generateData(num_tokens)
-    print("    generated data")
-    print("    fitting data")
     piecewiseFit = findPiecewiseFit(data)
-    print("    fitted data")
     invertedFit = piecewiseInverse(piecewiseFit)
 
     def result(compression_ratio):
