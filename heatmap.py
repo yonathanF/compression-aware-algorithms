@@ -15,6 +15,7 @@ def compression_ratio(decompressed):
 
 def test(CRs):
     CR1, CR2 = CRs
+    print("    {}, {}".format(CR1,CR2))
     iters = 2
     results = np.zeros((iters, len(metrics)))
     compression_ratios = np.zeros((iters, 2))
@@ -23,8 +24,10 @@ def test(CRs):
         compression_ratios[i][0], compression_ratios[i][1] = tuple(
             map(compression_ratio, decompressed))
         for index, metric in enumerate(metrics):
-            results[i][index] = metrics[metric](
+            metric_score = metrics[metric](
                 decompressed[0], decompressed[1])
+            print("        {}: {}".format(metric,metric_score))
+            results[i][index] = metric_score
 
     results = np.var(results, axis=0)
     compression_ratios = np.mean(compression_ratios, axis=0)

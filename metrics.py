@@ -55,7 +55,8 @@ def EditDistance(s1, s2):
 
 def HammingDistance(s1, s2):
     if len(s1) != len(s2):
-        return -1
+        smaller = min(len(s1),len(s2))
+        return HammingDistance(s1[:smaller],s2[:smaller])
     return sum(c1 != c2 for c1, c2 in zip(s1, s2))
 
 # the Needleman-Wunsch algorithm for Sequence Alignment
