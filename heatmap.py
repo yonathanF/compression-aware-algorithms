@@ -7,7 +7,7 @@ import matplotlib.pyplot as plt
 from mpl_toolkits import mplot3d
 import numpy as np
 import pickle
-
+from multiprocessing import Pool
 
 def compression_ratio(decompressed):
     return len(encode(decompressed))/len(decompressed)
@@ -15,7 +15,7 @@ def compression_ratio(decompressed):
 
 def test(CRs):
     CR1, CR2 = CRs
-    iters = 2
+    iters = 10
     results = np.zeros((iters, len(metrics)))
     compression_ratios = np.zeros((iters, 2))
     for i in range(max(2, iters)):
@@ -33,22 +33,23 @@ def test(CRs):
 
 def renew(min_limit, max_limit):
     print("Making heatmap with Min {} and Max {}".format(min_limit, max_limit))
-    steps = 0.5
+    steps = 0.1
     cr_x = np.arange(min_limit, max_limit, steps)
     cr_y = np.arange(min_limit, max_limit, steps)
-    result = np.array(list(map(test, itertools.product(cr_x, cr_y))))
-    result.tofile('memo.dat')
+    with Pool(5) as p:
+        result = np.array(list(p.map(test, itertools.product(cr_x, cr_y))))
+        result.tofile('memo.dat')
 
 
 def makeHeatmap():
     result = np.fromfile('memo.dat', dtype=float)
     result = result.reshape((len(result)//5, 5))
-    print(result)
+    # print(result)
     # TODO avoid duplicates
     ax = plt.axes(projection='3d')
-    ax.scatter(result[:, 0], result[:, 1], result[:, 2])
+    ax.scatter(result[:, 0], result[:, 1], result[:, 3])
     plt.show()
 
 
-renew(5, 15)
-# makeHeatmap()
+# renew(0.1, 2)
+makeHeatmap()
