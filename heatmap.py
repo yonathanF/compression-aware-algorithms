@@ -54,5 +54,5 @@ def makeHeatmap():
     plt.show()
 
 
-# renew(2,20)
-makeHeatmap()
+renew(2,20)
+# makeHeatmap()
