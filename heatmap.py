@@ -20,13 +20,13 @@ def test(CRs):
     compression_ratios = np.zeros((iters, 2))
     for i in range(max(2, iters)):
         decompressed = tuple(map(decode, map(random_compression, (CR1, CR2))))
-        cr1_actual, cr2_actual = tuple(
+        cr_actual = tuple(
             map(compression_ratio, decompressed))
         compression_ratios[i][0], compression_ratios[i][1] = (cr1_actual, cr2_actual)
         for index, metric in enumerate(metrics):
             metric_score = metrics[metric](
                 decompressed[0], decompressed[1])
-            print("        ({:.3f}, {:.3f}) {}: {}".format(cr1_actual,cr2_actual,metric,metric_score))
+            print("        ({:.3f}, {:.3f}) {}: {}".format(cr_actual[0],cr_actual[1],metric,metric_score))
             results[i][index] = metric_score
 
     results = np.var(results, axis=0)
@@ -36,7 +36,7 @@ def test(CRs):
 
 def renew(min_limit, max_limit):
     print("Making heatmap with Min {:.3f} and Max {:.3f}".format(min_limit, max_limit))
-    steps = 5
+    steps = 0.1
     cr_x = np.arange(min_limit, max_limit, steps)
     cr_y = np.arange(min_limit, max_limit, steps)
     with Pool(5) as p:
