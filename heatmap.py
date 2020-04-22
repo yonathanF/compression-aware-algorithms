@@ -6,27 +6,27 @@ from LZ78 import (decode, encode)
 import matplotlib.pyplot as plt
 from mpl_toolkits import mplot3d
 import numpy as np
-import pickle
 from multiprocessing import Pool
 
 def compression_ratio(decompressed):
-    return len(encode(decompressed))/len(decompressed)
+    return len(decompressed)/len(encode(decompressed))
 
 
 def test(CRs):
     CR1, CR2 = CRs
-    print("    {}, {}".format(CR1,CR2))
+    print("    test({:.3f}, {:.3f})".format(CR1,CR2))
     iters = 10
     results = np.zeros((iters, len(metrics)))
     compression_ratios = np.zeros((iters, 2))
     for i in range(max(2, iters)):
         decompressed = tuple(map(decode, map(random_compression, (CR1, CR2))))
-        compression_ratios[i][0], compression_ratios[i][1] = tuple(
+        cr1_actual, cr2_actual = tuple(
             map(compression_ratio, decompressed))
+        compression_ratios[i][0], compression_ratios[i][1] = (cr1_actual, cr2_actual)
         for index, metric in enumerate(metrics):
             metric_score = metrics[metric](
                 decompressed[0], decompressed[1])
-            print("        {}: {}".format(metric,metric_score))
+            print("        ({:.3f}, {:.3f}) {}: {}".format(cr1_actual,cr2_actual,metric,metric_score))
             results[i][index] = metric_score
 
     results = np.var(results, axis=0)
@@ -35,8 +35,8 @@ def test(CRs):
 
 
 def renew(min_limit, max_limit):
-    print("Making heatmap with Min {} and Max {}".format(min_limit, max_limit))
-    steps = 0.1
+    print("Making heatmap with Min {:.3f} and Max {:.3f}".format(min_limit, max_limit))
+    steps = 5
     cr_x = np.arange(min_limit, max_limit, steps)
     cr_y = np.arange(min_limit, max_limit, steps)
     with Pool(5) as p:
@@ -54,5 +54,5 @@ def makeHeatmap():
     plt.show()
 
 
-# renew(0.1, 2)
+# renew(2,20)
 makeHeatmap()
