@@ -122,24 +122,65 @@ def piecewiseInverse(fit):
 
     def invertedFit(x):
         return piecewiseEvaluate(x, newBreakpoints, newBreakpointYs, newSlopes)
-    return invertedFit
+    return (invertedFit,newBreakpoints,newBreakpointYs,newSlopes)
 
-prevModels = {}  # please copy this line with the function
+#retrieve previous models from file
+def listFromString(string):
+    badchars = "()[],"
+    for ch in badchars:
+        string = string.replace(ch,"")
+    return list(map(float,string.split()))
+def tupleFromString(string):
+    badchars = "()[],"
+    for ch in badchars:
+        string = string.replace(ch,"")
+    return tuple(map(int,string.split()))
+models_filename = "models.txt"
+prevModels = {}
+def extractModels():
+    with open(models_filename,"r") as models:
+        while(True):
+            line = models.readline()
+            if line == "":
+                break
+            key = tupleFromString(line)
+            num_tokens = key[0]
+            print("retrieving model for", num_tokens, "tokens")
+            breaks = listFromString(models.readline())
+            breakYs = listFromString(models.readline())
+            slopes = listFromString(models.readline())
+            print(key)
+            print(breaks)
+            print(breakYs)   
+            print(slopes)
+            def invertedFit(x):
+                return piecewiseEvaluate(x, breaks, breakYs, slopes)
+            def result(compression_ratio):
+                return invertedFit(1 / (compression_ratio * compression_ratio)) * num_tokens
+            prevModels[key] = result
+extractModels()
+
+def printToFile(filename, *args):
+    with open(filename, "a") as f:
+        for arg in args:
+            f.write(str(arg)+'\n')
+
 def deriveCRToDiff(num_tokens):
-    if(num_tokens in prevModels):
-        return prevModels[num_tokens]
+    key = (num_tokens,len(letters))
+    if key in prevModels:
+        return prevModels[key]
     print("deriving model for", num_tokens, "tokens")
     data = generateData(num_tokens)
     piecewiseFit = findPiecewiseFit(data)
-    invertedFit = piecewiseInverse(piecewiseFit)
+    invertedFit,breaks,breakYs,slopes = piecewiseInverse(piecewiseFit)
+    printToFile(models_filename,key,breaks,breakYs,slopes)
 
     def result(compression_ratio):
         return invertedFit(1 / (compression_ratio * compression_ratio)) * num_tokens
-    prevModels[num_tokens] = result
+    prevModels[key] = result
     return result
 
 # import sys
-
 # # helper for testing
 # def frange(start, stop, step):
 #     i = start
@@ -147,14 +188,14 @@ def deriveCRToDiff(num_tokens):
 #         yield i
 #         i += step
 
-# string_size = 2500
-# num_trials = 10
+# string_size = 500
+# num_trials = 30
 # if(len(sys.argv) > 1):
 #     toks = int(sys.argv[1])
 # for CR in frange(2, 10, 0.1):
 #     avg_CR = 0
 #     for trial in range(num_trials):
-#         comp = random_compression(CR, string_size, reject=False)
+#         comp = random_compression_tokens(CR, string_size, reject=False)
 #         avg_CR += compressionRatio(comp)
 #     avg_CR /= num_trials
 #     print("target:", round(CR, 2), "\tactual:", round(avg_CR, 2))

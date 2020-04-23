@@ -98,5 +98,5 @@ def makeHeatmap():
     plt.show()
 
 
-renew(2,20,1)
+renew(2,15,1)
 makeHeatmap()
