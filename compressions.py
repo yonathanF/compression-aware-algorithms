@@ -26,14 +26,10 @@ def withinTolerance(x, y, tolerance):
 def random_compression_tokens(compression_ratio, num_tokens=500, tolerance=0.05, reject=False):
     CRToDiff = deriveCRToDiff(num_tokens)
     avgIndexDiff = CRToDiff(compression_ratio)
-    chanceToLower = avgIndexDiff % 1
-    index_diff = int(avgIndexDiff)
-    if(random.random() > chanceToLower):
-        index_diff += 1
-    comp = same_index_diff_compression(num_tokens, index_diff)
+    comp = same_index_diff_compression(num_tokens, avgIndexDiff)
     if(reject):
         while not withinTolerance(compressionRatio(comp), compression_ratio, tolerance):
-            comp = same_index_diff_compression(num_tokens, index_diff)
+            comp = same_index_diff_compression(num_tokens, avgIndexDiff)
     return comp
 
 #nearest multiple of x above n
@@ -64,7 +60,11 @@ def random_compression(compression_ratio, string_size=2000, tolerance=0.05, reje
 def same_index_diff_compression(num_tokens, index_diff, index_randomness=1):
     result = []
     for i in range(num_tokens):
-        index_to_use = i - index_diff + random.randrange(-index_randomness, index_randomness + 1)
+        chanceToLower = index_diff % 1
+        index_diff_to_use = int(index_diff)
+        if(random.random() > chanceToLower):
+            index_diff_to_use += 1
+        index_to_use = i - index_diff_to_use + random.randrange(-index_randomness, index_randomness + 1)
         index_to_use = max(0, min(i, index_to_use))
         result.append((index_to_use, letters[random.randrange(0, len(letters))]))
     return result
@@ -149,10 +149,6 @@ def extractModels():
             breaks = listFromString(models.readline())
             breakYs = listFromString(models.readline())
             slopes = listFromString(models.readline())
-            print(key)
-            print(breaks)
-            print(breakYs)   
-            print(slopes)
             def invertedFit(x):
                 return piecewiseEvaluate(x, breaks, breakYs, slopes)
             def result(compression_ratio):
@@ -188,14 +184,14 @@ def deriveCRToDiff(num_tokens):
 #         yield i
 #         i += step
 
-# string_size = 500
+# string_size = 2000
 # num_trials = 30
 # if(len(sys.argv) > 1):
 #     toks = int(sys.argv[1])
 # for CR in frange(2, 10, 0.1):
 #     avg_CR = 0
 #     for trial in range(num_trials):
-#         comp = random_compression_tokens(CR, string_size, reject=False)
+#         comp = random_compression(CR, string_size, reject=False)
 #         avg_CR += compressionRatio(comp)
 #     avg_CR /= num_trials
 #     print("target:", round(CR, 2), "\tactual:", round(avg_CR, 2))
