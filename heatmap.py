@@ -9,13 +9,14 @@ import numpy as np
 import pickle
 from multiprocessing import Pool
 
+
 def compression_ratio(decompressed):
     return len(encode(decompressed))/len(decompressed)
 
 
 def test(CRs):
     CR1, CR2 = CRs
-    iters = 10
+    iters = 100
     results = np.zeros((iters, len(metrics)))
     compression_ratios = np.zeros((iters, 2))
     for i in range(max(2, iters)):
@@ -33,10 +34,10 @@ def test(CRs):
 
 def renew(min_limit, max_limit):
     print("Making heatmap with Min {} and Max {}".format(min_limit, max_limit))
-    steps = 0.1
+    steps = 0.2
     cr_x = np.arange(min_limit, max_limit, steps)
     cr_y = np.arange(min_limit, max_limit, steps)
-    with Pool(5) as p:
+    with Pool(10) as p:
         result = np.array(list(p.map(test, itertools.product(cr_x, cr_y))))
         result.tofile('memo.dat')
 
@@ -47,9 +48,9 @@ def makeHeatmap():
     # print(result)
     # TODO avoid duplicates
     ax = plt.axes(projection='3d')
-    ax.scatter(result[:, 0], result[:, 1], result[:, 3])
+    ax.scatter(result[:, 0], result[:, 1], result[:, 4])
     plt.show()
 
 
-# renew(0.1, 2)
-makeHeatmap()
+renew(5, 15)
+# makeHeatmap()
