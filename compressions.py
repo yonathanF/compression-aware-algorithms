@@ -19,45 +19,54 @@ except ImportError:
     print("pip install pwlf")
     exit()
 
-
 def withinTolerance(x, y, tolerance):
     return abs((x / y) - 1) < tolerance
 
-
-def random_string(num_chars):
-    result = ''
-    for i in range(num_chars):
-        result += letters[random.randrange(0, len(letters))]
-    return result
-
-
-def random_compression(compression_ratio, num_tokens=500, tolerance=0.05, reject=False):
+#random compression by num tokens
+def random_compression_tokens(compression_ratio, num_tokens=500, tolerance=0.05, reject=False):
     CRToDiff = deriveCRToDiff(num_tokens)
     avgIndexDiff = CRToDiff(compression_ratio)
-    chanceToLower = avgIndexDiff % 1
-    index_diff = int(avgIndexDiff)
-    if(random.random() > chanceToLower):
-        index_diff += 1
-    comp = same_index_diff_compression(num_tokens, index_diff)
+    comp = same_index_diff_compression(num_tokens, avgIndexDiff)
     if(reject):
         while not withinTolerance(compressionRatio(comp), compression_ratio, tolerance):
-            comp = same_index_diff_compression(num_tokens, index_diff)
+            comp = same_index_diff_compression(num_tokens, avgIndexDiff)
     return comp
 
+#nearest multiple of x above n
+def nearest_multiple_above(n,x):
+    return ((n//x) + 1)*x
 
-def random_compression_size(compression_ratio, string_size=2500, tolerance=0.05, reject=True):
-    num_tokens = int(round(string_size / compression_ratio))
-    return random_compression(compression_ratio, num_tokens, tolerance, reject)
+#want the string to be an exact size
+#so generate a compression, then cut the string down to size
+#then return compression of that
+def truncated_compression(compression_ratio, num_tokens, string_size):
+    comp = random_compression_tokens(compression_ratio, num_tokens)
+    decomp = decompress(comp)
+    if(len(decomp)>string_size):
+        comp = compress(decomp[:string_size])
+    return comp
 
+#gives a compression which decompresses to a specified string size
+#with approximately a target compression ratio
+def random_compression(compression_ratio, string_size=2000, tolerance=0.05, reject=False):
+    num_tokens = nearest_multiple_above(int(round(string_size / compression_ratio)),100)
+    comp = truncated_compression(compression_ratio, num_tokens, string_size)
+    if(reject):
+        while not withinTolerance(compressionRatio(comp), compression_ratio, tolerance):
+            comp = truncated_compression(compression_ratio, num_tokens, string_size)
+    return comp
 
+#gives a compression with the same back pointer distance in every cell
 def same_index_diff_compression(num_tokens, index_diff, index_randomness=1):
     result = []
     for i in range(num_tokens):
-        index_to_use = i - index_diff + \
-            random.randrange(-index_randomness, index_randomness + 1)
+        chanceToLower = index_diff % 1
+        index_diff_to_use = int(index_diff)
+        if(random.random() > chanceToLower):
+            index_diff_to_use += 1
+        index_to_use = i - index_diff_to_use + random.randrange(-index_randomness, index_randomness + 1)
         index_to_use = max(0, min(i, index_to_use))
-        result.append(
-            (index_to_use, letters[random.randrange(0, len(letters))]))
+        result.append((index_to_use, letters[random.randrange(0, len(letters))]))
     return result
 
 
@@ -113,29 +122,61 @@ def piecewiseInverse(fit):
 
     def invertedFit(x):
         return piecewiseEvaluate(x, newBreakpoints, newBreakpointYs, newSlopes)
-    return invertedFit
+    return (invertedFit,newBreakpoints,newBreakpointYs,newSlopes)
 
-# TODO: memoize to a file so that models are preserved between runs
-prevModels = {}  # please copy this line with the function
+#retrieve previous models from file
+def listFromString(string):
+    badchars = "()[],"
+    for ch in badchars:
+        string = string.replace(ch,"")
+    return list(map(float,string.split()))
+def tupleFromString(string):
+    badchars = "()[],"
+    for ch in badchars:
+        string = string.replace(ch,"")
+    return tuple(map(int,string.split()))
+models_filename = "models.txt"
+prevModels = {}
+def extractModels():
+    with open(models_filename,"r") as models:
+        while(True):
+            line = models.readline()
+            if line == "":
+                break
+            key = tupleFromString(line)
+            num_tokens = key[0]
+            print("retrieving model for", num_tokens, "tokens")
+            breaks = listFromString(models.readline())
+            breakYs = listFromString(models.readline())
+            slopes = listFromString(models.readline())
+            def invertedFit(x):
+                return piecewiseEvaluate(x, breaks, breakYs, slopes)
+            def result(compression_ratio):
+                return invertedFit(1 / (compression_ratio * compression_ratio)) * num_tokens
+            prevModels[key] = result
+extractModels()
+
+def printToFile(filename, *args):
+    with open(filename, "a") as f:
+        for arg in args:
+            f.write(str(arg)+'\n')
+
 def deriveCRToDiff(num_tokens):
-    if(num_tokens in prevModels):
-        return prevModels[num_tokens]
+    key = (num_tokens,len(letters))
+    if key in prevModels:
+        return prevModels[key]
     print("deriving model for", num_tokens, "tokens")
-    print("    generating data")
     data = generateData(num_tokens)
-    print("    generated data")
-    print("    fitting data")
     piecewiseFit = findPiecewiseFit(data)
-    print("    fitted data")
-    invertedFit = piecewiseInverse(piecewiseFit)
+    invertedFit,breaks,breakYs,slopes = piecewiseInverse(piecewiseFit)
+    printToFile(models_filename,key,breaks,breakYs,slopes)
 
     def result(compression_ratio):
         return invertedFit(1 / (compression_ratio * compression_ratio)) * num_tokens
-    prevModels[num_tokens] = result
+    prevModels[key] = result
     return result
 
 # import sys
-
 # # helper for testing
 # def frange(start, stop, step):
 #     i = start
@@ -143,14 +184,14 @@ def deriveCRToDiff(num_tokens):
 #         yield i
 #         i += step
 
-# toks = 500
-# num_trials = 10
+# string_size = 2000
+# num_trials = 30
 # if(len(sys.argv) > 1):
 #     toks = int(sys.argv[1])
-# for CR in frange(5, 30, 0.5):
+# for CR in frange(2, 10, 0.1):
 #     avg_CR = 0
 #     for trial in range(num_trials):
-#         comp = random_compression(CR, toks, reject=True)
+#         comp = random_compression(CR, string_size, reject=False)
 #         avg_CR += compressionRatio(comp)
 #     avg_CR /= num_trials
 #     print("target:", round(CR, 2), "\tactual:", round(avg_CR, 2))

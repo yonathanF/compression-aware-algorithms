@@ -1,40 +1,86 @@
 # heatmap.py
 import itertools
-from metrics import metrics
+# from metrics import metrics
 from compressions import random_compression
 from LZ78 import (decode, encode)
 import matplotlib.pyplot as plt
 from mpl_toolkits import mplot3d
 import numpy as np
-import pickle
 from multiprocessing import Pool
 
+# metrics
+# this can't be a separate file because python doesn't know how 
+# to import a dynamically linked library like this
+from ctypes import *
+from os import getcwd
+so_file = getcwd() + "/metrics.so"
+cmetrics = CDLL(so_file)
+
+def char_p(s):
+    return c_char_p(s.encode())
+
+def LCS(s1,s2):
+    return cmetrics.lcs(char_p(s1),char_p(s2),c_int(len(s1)),c_int(len(s2)))
+
+def matrix_pretty_print(matrix):
+    """Prints the matrix more nicely """
+    for row in matrix:
+        print(row)
+
+def EditDistance(s1, s2):
+    return cmetrics.edit_distance(char_p(s1),char_p(s2),c_int(len(s1)),c_int(len(s2)))
+
+
+def HammingDistance(s1, s2):
+    if len(s1) != len(s2):
+        smaller = min(len(s1),len(s2))
+        return HammingDistance(s1[:smaller],s2[:smaller])
+    return sum(c1 != c2 for c1, c2 in zip(s1, s2))
+
+# the Needleman-Wunsch algorithm for Sequence Alignment
+def SequenceAlignment(s1, s2):
+    pass
+
+
+def StringReconstruction(s1, s2):
+    pass
+
+metrics = {
+    "Hamming Distance": HammingDistance,
+    #"StringReconstruction": StringReconstruction,
+    #"SequenceAlignment": SequenceAlignment,
+    "Edit Distance": EditDistance,
+    "LCS Length": LCS,
+}
 
 def compression_ratio(decompressed):
-    return len(encode(decompressed))/len(decompressed)
+    return len(decompressed)/len(encode(decompressed))
 
 
 def test(CRs):
     CR1, CR2 = CRs
     iters = 100
+    print("----------test({:.3f}, {:.3f})-----------".format(CR1,CR2))
     results = np.zeros((iters, len(metrics)))
     compression_ratios = np.zeros((iters, 2))
     for i in range(max(2, iters)):
         decompressed = tuple(map(decode, map(random_compression, (CR1, CR2))))
-        compression_ratios[i][0], compression_ratios[i][1] = tuple(
+        cr_actual = tuple(
             map(compression_ratio, decompressed))
+        compression_ratios[i][0], compression_ratios[i][1] = cr_actual
         for index, metric in enumerate(metrics):
-            results[i][index] = metrics[metric](
+            metric_score = metrics[metric](
                 decompressed[0], decompressed[1])
+            print("({:.3f}, {:.3f}) {}: {}".format(cr_actual[0],cr_actual[1],metric,metric_score))
+            results[i][index] = metric_score
 
     results = np.var(results, axis=0)
     compression_ratios = np.mean(compression_ratios, axis=0)
     return np.concatenate((compression_ratios, results))
 
 
-def renew(min_limit, max_limit):
-    print("Making heatmap with Min {} and Max {}".format(min_limit, max_limit))
-    steps = 0.2
+def renew(min_limit, max_limit, steps=1.0):
+    print("Making heatmap with Min {:.3f} and Max {:.3f}".format(min_limit, max_limit))
     cr_x = np.arange(min_limit, max_limit, steps)
     cr_y = np.arange(min_limit, max_limit, steps)
     with Pool(10) as p:
@@ -52,5 +98,5 @@ def makeHeatmap():
     plt.show()
 
 
-renew(5, 15)
-# makeHeatmap()
+renew(2,20)
+makeHeatmap()
