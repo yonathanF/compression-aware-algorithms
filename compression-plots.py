@@ -6,7 +6,7 @@ num_tokens = 500
 if(len(sys.argv) > 1):
     num_tokens = int(sys.argv[1])
 
-#generate data
+#generate index diff data
 print("generating data")
 data = generateData(num_tokens)
 print("generated data")
@@ -17,8 +17,6 @@ piecewiseFit = findPiecewiseFit(data)
 print("fitted data")
 diffs_predicted = np.linspace(0, 1, num_tokens*2)
 CRs_predicted = piecewiseFit.predict(diffs_predicted)
-
-prediction
 
 #raw index diff vs compression ratio
 plt.title('Index Diff vs Compression Ratio over 10 trials')
@@ -57,11 +55,3 @@ plt.xlabel('Index Diff / Num Tokens')
 plt.plot(diffs,CRs,'.')
 plt.plot(diffs_predicted,np.reciprocal(np.sqrt(CRs_predicted)))
 plt.show()
-
-#inverted with model
-# plt.title('Predicted Index Diff vs. Resulting Compression Ratio')
-# plt.ylabel('Average Compression Ratio')
-# plt.xlabel('Index Diff / Num Tokens')
-# plt.plot(diffs,CRs,'.')
-# plt.plot(diffs_predicted,np.reciprocal(np.sqrt(CRs_predicted)))
-# plt.show()
