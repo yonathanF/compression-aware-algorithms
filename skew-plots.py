@@ -6,11 +6,11 @@ import sys
 string_size=2000
 iters = 50
 print("generating skew graph for {} chars".format(string_size))
-CRs_to_predict = np.linspace(5, 10, 100)
+CRs_to_predict = np.linspace(1, 20, 100)
 generated = []
 for i in range(iters):
 	print("{} / {}".format(i,iters))
-	generated.extend([(CR,compressionRatio(random_compression(CR,string_size,reject=True))) for CR in CRs_to_predict])
+	generated.extend([(CR,compressionRatio(random_compression(CR,string_size))) for CR in CRs_to_predict])
 predicted = [p[0] for p in generated]
 actual = [p[1] for p in generated]
 
