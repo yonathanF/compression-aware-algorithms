@@ -69,6 +69,15 @@ def same_index_diff_compression(num_tokens, index_diff, index_randomness=1):
         result.append((index_to_use, letters[random.randrange(0, len(letters))]))
     return result
 
+def same_index_diff_compression_old(num_tokens,index_diff,index_randomness):
+    result = []
+    for i in range(num_tokens):
+        index_to_use = i - index_diff+random.randrange(-index_randomness,index_randomness+1)
+        index_to_use = max(0,index_to_use)
+        index_to_use = min(i,index_to_use)
+        result.append((index_to_use, letters[random.randrange(0,len(letters))]))
+    return result
+
 
 def compressionRatio(compression):
     string = decompress(compression)
@@ -76,15 +85,18 @@ def compressionRatio(compression):
     return len(string) / len(newcomp)
 
 
-def generateData(num_tokens=500, index_randomness=1, num_trials=10):
+def generateData(num_tokens=500, index_randomness=1, num_trials=10, old=False):
     diffs = []
     CRs = []
+    cmprsn = same_index_diff_compression
+    # if(old):
+        # cmprsn = same_index_diff_compression_old
     # TODO this outer loop is slow but can be done in parallel or using map
     # syntax
     for i in range(1, num_tokens):
         avg_CR = 0
         for j in range(num_trials):
-            comp = same_index_diff_compression(num_tokens, i, index_randomness)
+            comp = cmprsn(num_tokens, i, index_randomness)
             avg_CR += compressionRatio(comp)
         avg_CR /= num_trials
         diffs.append(i / num_tokens)
