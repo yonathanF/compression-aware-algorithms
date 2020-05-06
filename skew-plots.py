@@ -3,7 +3,9 @@ import matplotlib.pyplot as plt
 import sys
 
 #generate compressions for skew graph
-string_size=2000
+string_size=1500
+if(len(sys.argv) > 1):
+    string_size = int(sys.argv[1])
 iters = 50
 print("generating skew graph for {} chars".format(string_size))
 CRs_to_predict = np.linspace(1, 20, 100)
