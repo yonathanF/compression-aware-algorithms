@@ -19,6 +19,12 @@ except ImportError:
     print("pip install pwlf")
     exit()
 
+def random_string(num_chars):
+    result = ''
+    for i in range(num_chars):
+        result += letters[random.randrange(0,len(letters))]
+    return result
+
 def withinTolerance(x, y, tolerance):
     return abs((x / y) - 1) < tolerance
 
@@ -73,8 +79,7 @@ def same_index_diff_compression_old(num_tokens,index_diff,index_randomness):
     result = []
     for i in range(num_tokens):
         index_to_use = i - index_diff+random.randrange(-index_randomness,index_randomness+1)
-        index_to_use = max(0,index_to_use)
-        index_to_use = min(i,index_to_use)
+        index_to_use = max(0,min(i,index_to_use))
         result.append((index_to_use, letters[random.randrange(0,len(letters))]))
     return result
 
