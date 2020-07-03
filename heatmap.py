@@ -61,7 +61,7 @@ data_filename = 'data/memo.dat'
 def compression_ratio(decompressed):
     return len(decompressed)/len(encode(decompressed))
 
-def raw_data(CRs, num_data_points=100):
+def raw_data(CRs, num_data_points=10):
     CR1, CR2 = CRs
     print("Running {} and {}".format(CR1, CR2))
     data = np.zeros((num_data_points, len(metrics)+2),dtype=float)
@@ -92,16 +92,26 @@ def make_heatmap(f, min_limit, max_limit, steps=1.0):
     return result
 
 def plot(data=None):
-    if data is not None:
+    if data is None:
         data = np.fromfile(data_filename, dtype=float)
         num_cols = len(metrics) + 2
         data = data.reshape((len(data)//num_cols,num_cols))
-    column_labels = ['CR of String 1', 'CR of String 2']
+    column_labels = ['CR1', 'CR2']
     for metric in metrics:
         column_labels.append(metric)
     data = pd.DataFrame(data, columns = column_labels)
     sns.set(style="whitegrid")
-
+    for metric in metrics:    
+        ax = plt.axes(projection='3d')
+        x = data['CR1']
+        y = data['CR2']
+        z = data[metric]
+        ax.scatter(x, y, z, c=z)
+        ax.set_xlabel('Compression Ratio of S1')
+        ax.set_ylabel('Compression Ratio of S2')
+        ax.set_zlabel(metric + ' Score')
+        ax.set_title('Compression ratio vs ' + metric)
+        plt.show()
 
 
 # def makeHeatmap():
@@ -136,5 +146,5 @@ def plot(data=None):
 #     plt.show()
 
 
-plot(make_heatmap(raw_data, 5, 7, 1))
-# plot(make_heatmap(raw_data, 5, 20, 1))
+# plot(make_heatmap(raw_data, 5, 7, 1))
+plot(make_heatmap(raw_data, 5, 15, 0.5))
