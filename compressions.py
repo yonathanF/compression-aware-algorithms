@@ -162,7 +162,7 @@ def extractModels():
                 break
             key = tupleFromString(line)
             num_tokens = key[0]
-            print("retrieving model for", num_tokens, "tokens")
+            # print("retrieving model for", num_tokens, "tokens")
             breaks = listFromString(models.readline())
             breakYs = listFromString(models.readline())
             slopes = listFromString(models.readline())

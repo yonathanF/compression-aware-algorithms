@@ -40,8 +40,6 @@ def HammingDistance(s1, s2):
     return sum(c1 != c2 for c1, c2 in zip(s1, s2))
 
 # the Needleman-Wunsch algorithm for Sequence Alignment
-
-
 def SequenceAlignment(s1, s2):
     pass
 
@@ -58,77 +56,85 @@ metrics = {
     "LCS Length": LCS,
 }
 
+data_filename = 'data/memo.dat'
 
 def compression_ratio(decompressed):
     return len(decompressed)/len(encode(decompressed))
 
-
-def test(CRs):
+def raw_data(CRs, num_data_points=100):
     CR1, CR2 = CRs
     print("Running {} and {}".format(CR1, CR2))
-    iters = 100
-    results = np.zeros((iters, len(metrics)))
-    compression_ratios = np.zeros((iters, 2))
-    for i in range(max(2, iters)):
-        decompressed = tuple(map(decode, map(random_compression, (CR1, CR2))))
-        compression_ratios[i][0], compression_ratios[i][1] = tuple(
-            map(compression_ratio, decompressed))
+    data = np.zeros((num_data_points, len(metrics)+2),dtype=float)
+    for i in range(num_data_points):
+        S1,S2 = map(decode, map(random_compression, (CR1, CR2)))
+        realCR1,realCR2 = tuple(map(compression_ratio, (S1,S2)))
+        data[i,0] = realCR1
+        data[i,1] = realCR2
         for index, metric in enumerate(metrics):
-            metric_score = metrics[metric](
-                decompressed[0], decompressed[1])
-            results[i][index] = metric_score
+            metric_score = metrics[metric](S1,S2)
+            data[i,index+2] = metric_score
+    return data
 
-    results = np.mean(results, axis=0)
-    compression_ratios = np.mean(compression_ratios, axis=0)
+def flat_map(l):
+    result = []
+    for thing in l:
+        result.extend(thing)
+    return result
 
-    print("Finished running {} and {}".format(CR1, CR2))
-    return np.concatenate((compression_ratios, results))
-
-
-def renew(min_limit, max_limit, steps=1.0):
+def make_heatmap(f, min_limit, max_limit, steps=1.0):
     print("Making heatmap with Min {:.3f} and Max {:.3f}".format(
-        min_limit, max_limit))
+    min_limit, max_limit))
     cr_x = np.arange(min_limit, max_limit, steps)
     cr_y = np.arange(min_limit, max_limit, steps)
     with Pool(10) as p:
-        result = np.array(list(p.map(test, itertools.product(cr_x, cr_y))))
-        result.tofile('memo.dat')
+        result = np.array(flat_map(p.map(f, itertools.product(cr_x, cr_y))))
+    result.tofile(data_filename)
+    return result
 
-
-def makeHeatmap():
-    result = np.fromfile('memo.dat', dtype=float)
-    result = result.reshape((len(result)//5, 5))
-    result = pd.DataFrame(result,
-                          columns=['Ave CR1', 'Ave CR2', 'STD in Hamming Distance', 'STD in Edit Distance', 'STD in LCS'])
-
+def plot(data=None):
+    if data is not None:
+        data = np.fromfile(data_filename, dtype=float)
+        num_cols = len(metrics) + 2
+        data = data.reshape((len(data)//num_cols,num_cols))
+    column_labels = ['CR of String 1', 'CR of String 2']
+    for metric in metrics:
+        column_labels.append(metric)
+    data = pd.DataFrame(data, columns = column_labels)
     sns.set(style="whitegrid")
-    # ax = plt.axes(projection='3d')
-    # ax.scatter(x, y, z, c=z)
-    # ax.set_xlabel('Ave compression ratio of S1')
-    # ax.set_ylabel('Ave compression ratio of S2')
-    # ax.set_zlabel('STD in Metric x')
-    # ax.set_title('Compression ratio vs STD in metric')
-    t = ['STD in Hamming Distance', 'STD in LCS', 'STD in Edit Distance']
-    for i in range(1, 4):
-        plt.subplot(1, 3, i)
-        ax = sns.scatterplot(x='Ave CR1', y='Ave CR2',
-                              hue=t[i-1], size=t[i-1], data=result)
-        ax.set_xlabel('Ave compression ratio of S1')
-        ax.set_ylabel('Ave compression ratio of S2')
-        ax.set_title('Compression ratio vs {}'.format(t[i-1]))
-
-    # for i in range(1, 4):
-        # fig = plt.figure()
-        # ax = fig.add_subplot(222, projection='3d')
-        # ax = plt.axes(projection='3d')
-        # ax.scatter(result['Ave CR1'], result['Ave CR2'], result[t[i-1]], c=result[t[i-1]])
-        # ax.set_xlabel('Ave compression ratio of S1')
-        # ax.set_ylabel('Ave compression ratio of S2')
-        # ax.set_zlabel(t[i-1])
-        # ax.set_title('Compression ratio vs {}'.format(t[i-1]))
-
-    plt.show()
 
 
-renew(5, 20, 1)
-makeHeatmap()
+
+# def makeHeatmap():
+#     result = np.fromfile('memo.dat', dtype=float)
+#     result = result.reshape((len(result)//5, 5))
+#     result = pd.DataFrame(result,
+#                           columns=['Ave CR1', 'Ave CR2', 'STD in Hamming Distance', 'STD in Edit Distance', 'STD in LCS'])
+#     sns.set(style="whitegrid")
+#     # ax = plt.axes(projection='3d')
+#     # ax.scatter(x, y, z, c=z)
+#     # ax.set_xlabel('Ave compression ratio of S1')
+#     # ax.set_ylabel('Ave compression ratio of S2')
+#     # ax.set_zlabel('STD in Metric x')
+#     # ax.set_title('Compression ratio vs STD in metric')
+#     t = ['STD in Hamming Distance', 'STD in LCS', 'STD in Edit Distance']
+#     for i in range(1, 4):
+#         plt.subplot(1, 3, i)
+#         ax = sns.scatterplot(x='Ave CR1', y='Ave CR2',
+#                               hue=t[i-1], size=t[i-1], data=result)
+#         ax.set_xlabel('Ave compression ratio of S1')
+#         ax.set_ylabel('Ave compression ratio of S2')
+#         ax.set_title('Compression ratio vs {}'.format(t[i-1]))
+#     # for i in range(1, 4):
+#         # fig = plt.figure()
+#         # ax = fig.add_subplot(222, projection='3d')
+#         # ax = plt.axes(projection='3d')
+#         # ax.scatter(result['Ave CR1'], result['Ave CR2'], result[t[i-1]], c=result[t[i-1]])
+#         # ax.set_xlabel('Ave compression ratio of S1')
+#         # ax.set_ylabel('Ave compression ratio of S2')
+#         # ax.set_zlabel(t[i-1])
+#         # ax.set_title('Compression ratio vs {}'.format(t[i-1]))
+#     plt.show()
+
+
+plot(make_heatmap(raw_data, 5, 7, 1))
+# plot(make_heatmap(raw_data, 5, 20, 1))
