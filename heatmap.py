@@ -113,38 +113,4 @@ def plot(data=None):
         ax.set_title('Compression ratio vs ' + metric)
         plt.show()
 
-
-# def makeHeatmap():
-#     result = np.fromfile('memo.dat', dtype=float)
-#     result = result.reshape((len(result)//5, 5))
-#     result = pd.DataFrame(result,
-#                           columns=['Ave CR1', 'Ave CR2', 'STD in Hamming Distance', 'STD in Edit Distance', 'STD in LCS'])
-#     sns.set(style="whitegrid")
-#     # ax = plt.axes(projection='3d')
-#     # ax.scatter(x, y, z, c=z)
-#     # ax.set_xlabel('Ave compression ratio of S1')
-#     # ax.set_ylabel('Ave compression ratio of S2')
-#     # ax.set_zlabel('STD in Metric x')
-#     # ax.set_title('Compression ratio vs STD in metric')
-#     t = ['STD in Hamming Distance', 'STD in LCS', 'STD in Edit Distance']
-#     for i in range(1, 4):
-#         plt.subplot(1, 3, i)
-#         ax = sns.scatterplot(x='Ave CR1', y='Ave CR2',
-#                               hue=t[i-1], size=t[i-1], data=result)
-#         ax.set_xlabel('Ave compression ratio of S1')
-#         ax.set_ylabel('Ave compression ratio of S2')
-#         ax.set_title('Compression ratio vs {}'.format(t[i-1]))
-#     # for i in range(1, 4):
-#         # fig = plt.figure()
-#         # ax = fig.add_subplot(222, projection='3d')
-#         # ax = plt.axes(projection='3d')
-#         # ax.scatter(result['Ave CR1'], result['Ave CR2'], result[t[i-1]], c=result[t[i-1]])
-#         # ax.set_xlabel('Ave compression ratio of S1')
-#         # ax.set_ylabel('Ave compression ratio of S2')
-#         # ax.set_zlabel(t[i-1])
-#         # ax.set_title('Compression ratio vs {}'.format(t[i-1]))
-#     plt.show()
-
-
-# plot(make_heatmap(raw_data, 5, 7, 1))
-plot(make_heatmap(raw_data, 5, 15, 0.5))
+plot(make_heatmap(raw_data, 5, 20, 1))

@@ -6,7 +6,7 @@ compress = LZ78.encode
 # what characters do we choose from when adding a token to a random
 # compression?
 import string
-letters = string.ascii_letters[:4]
+letters = string.ascii_letters
 
 import random
 import math
@@ -54,7 +54,7 @@ def truncated_compression(compression_ratio, num_tokens, string_size):
 
 #gives a compression which decompresses to a specified string size
 #with approximately a target compression ratio
-def random_compression(compression_ratio, string_size=2000, tolerance=0.05, reject=False):
+def random_compression(compression_ratio, string_size=2000, tolerance=0.05, reject=True):
     num_tokens = nearest_multiple_above(int(round(string_size / compression_ratio)),100)
     comp = truncated_compression(compression_ratio, num_tokens, string_size)
     if(reject):
@@ -63,7 +63,7 @@ def random_compression(compression_ratio, string_size=2000, tolerance=0.05, reje
     return comp
 
 #gives a compression with the same back pointer distance in every cell
-def same_index_diff_compression(num_tokens, index_diff, index_randomness=1):
+def same_index_diff_compression(num_tokens, index_diff, index_randomness=3):
     result = []
     for i in range(num_tokens):
         chanceToLower = index_diff % 1
@@ -183,23 +183,3 @@ def deriveCRToDiff(num_tokens):
         return invertedFit(1 / (compression_ratio * compression_ratio)) * num_tokens
     prevModels[key] = result
     return result
-
-# import sys
-# # helper for testing
-# def frange(start, stop, step):
-#     i = start
-#     while i < stop:
-#         yield i
-#         i += step
-
-# string_size = 2000
-# num_trials = 30
-# if(len(sys.argv) > 1):
-#     toks = int(sys.argv[1])
-# for CR in frange(2, 10, 0.1):
-#     avg_CR = 0
-#     for trial in range(num_trials):
-#         comp = random_compression(CR, string_size, reject=False)
-#         avg_CR += compressionRatio(comp)
-#     avg_CR /= num_trials
-#     print("target:", round(CR, 2), "\tactual:", round(avg_CR, 2))
